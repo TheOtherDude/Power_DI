@@ -16,6 +16,15 @@ local function coroutine_wrapper(self,fn)
     end
     return coroutine_function
 end
+
+local function clone_runtime_value(value)
+    if type(value) == "table" then
+        return PDI.utilities.safe_clone_table(value)
+    end
+
+    return value
+end
+
 --Coroutine to clone a datasource to a dataset--
 local function clone_datasource_coroutine (self, datasource_name)
     PDI.debug("clone_datasource_coroutine","start")
@@ -26,13 +35,21 @@ local function clone_datasource_coroutine (self, datasource_name)
                 if PDI.coroutine_manager.must_yield(self) then
                     coroutine:yield()
                 end
-                if value == t then
-                    clone[key] = clone
-                elseif type(value) == "table" then
-                    clone[key] = table.clone(value)
-                else
-                    clone[key] = value
+                local clone_key = key
+                if key == t then
+                    clone_key = clone
+                elseif type(key) == "table" then
+                    clone_key = clone_runtime_value(key)
                 end
+
+                local clone_value = value
+                if value == t then
+                    clone_value = clone
+                elseif type(value) == "table" then
+                    clone_value = clone_runtime_value(value)
+                end
+
+                clone[clone_key] = clone_value
             end
             return clone
         end
@@ -60,7 +77,7 @@ local function append_datasource_coroutine (self, datasource_name)
                 if must_yield(self) then
                     coroutine.yield()
                 end
-                input_table[original_size+k] = table.clone(v)
+                input_table[original_size+k] = clone_runtime_value(v)
                 input_table[original_size+k].original_index = k
             end
             PDI.debug("append_datasource_coroutine", "end")
@@ -70,7 +87,7 @@ local function append_datasource_coroutine (self, datasource_name)
                 if must_yield(self) then
                     coroutine.yield()
                 end
-                input_table[k] = table.clone(v)
+                input_table[clone_runtime_value(k)] = clone_runtime_value(v)
             end
             PDI.debug("append_datasource_coroutine", "end")
         end
@@ -102,18 +119,12 @@ local function iterate_datasource_coroutine(self, datasource, calculation_functi
     if is_array(datasource) then
         PDI.debug("iterate_datasource_coroutine", "array")
         for k, v in ipairs(datasource) do
-            if type(v) == "table" then
-                v = table.clone(v)
-            end
-            calculation_function(k,v)
+            calculation_function(k, clone_runtime_value(v))
         end
     else
         PDI.debug("iterate_datasource_coroutine", "table")
         for k, v in pairs(datasource) do
-            if type(v) == "table" then
-                v = table.clone(v)
-            end
-            calculation_function(k,v)
+            calculation_function(clone_runtime_value(k), clone_runtime_value(v))
         end
     end
     PDI.debug("iterate_datasource_coroutine", "end")
@@ -364,7 +375,7 @@ end
 
 --Returns a dataset template by name--
 dataset_manager.get_dataset_template = function(dataset_name)
-    return table.clone(dataset_manager.registered_datasets[dataset_name])
+    return clone_runtime_value(dataset_manager.registered_datasets[dataset_name])
 end
 
 -- dataset_manager.check_dataset_template_hash = function(dataset_name, hash)

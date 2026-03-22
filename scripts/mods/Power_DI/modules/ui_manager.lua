@@ -14,6 +14,7 @@ local ScriptWorld = require("scripts/foundation/utilities/script_world")
 local PlayerInfo = require("scripts/managers/data_service/services/social/player_info")
 
 local circumstance_templates = require("scripts/settings/circumstance/circumstance_templates")
+local MissionTemplates = require("scripts/settings/mission/mission_templates")
 local ScrollbarPassTemplates = require("scripts/ui/pass_templates/scrollbar_pass_templates")
 local DropdownPassTemplates = require("scripts/ui/pass_templates/dropdown_pass_templates")
 local TextInputPassTemplates = require("scripts/ui/pass_templates/text_input_pass_templates")
@@ -48,6 +49,45 @@ local gold_highlight_color = {255,238,186,74}
 local padding = 10
 
 local date_format = mod:get("date_format")
+
+local function normalize_mission_texture_path(texture_path)
+    if type(texture_path) ~= "string" then
+        return nil
+    end
+
+    return texture_path:gsub("content/ui/textures/pj_missions/", "content/ui/textures/missions/")
+end
+
+local function get_session_mission_template(session)
+    local mission_data = session and session.mission_data
+    local mission = session and session.mission
+    local mission_name = mission_data and mission_data.map or mission and mission.name
+
+    if not mission_name then
+        return nil
+    end
+
+    return MissionTemplates[mission_name]
+end
+
+local function get_session_mission_texture(session)
+    local mission_template = get_session_mission_template(session)
+    if mission_template and mission_template.texture_big then
+        return mission_template.texture_big
+    end
+
+    local mission = session and session.mission
+    local texture_path = mission and (mission.texture_big or mission.texture_medium or mission.texture_small)
+
+    return normalize_mission_texture_path(texture_path)
+end
+
+local function get_session_mission_display_name(session)
+    local mission_template = get_session_mission_template(session)
+    local mission_name = mission_template and mission_template.mission_name or session and session.mission and session.mission.mission_name
+
+    return mission_name and Localize(mission_name) or mod:localize("mloc_n_a")
+end
 
 local view_name = "pdi_main_view"
 
@@ -4266,9 +4306,13 @@ ui_manager.setup_sessions = function()
         if session then
             session = table.clone(session)
             local item_template = get_item_template()
+            local mission_texture = get_session_mission_texture(session)
+            local mission_name = get_session_mission_display_name(session)
 
-            item_template.passes[1].style.material_values.texture_map  = session.mission.texture_big
-            local mission_name = Localize(session.mission.mission_name)
+            if mission_texture then
+                item_template.passes[1].style.material_values.texture_map = mission_texture
+            end
+
             item_template.passes[5].value = mission_name
             item_template.passes[5].style.font_size = font_size * 0.9
             item_template.passes[5].style.default_font_size = font_size * 0.9

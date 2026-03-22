@@ -8,10 +8,18 @@ local registered_lookup_tables = {}
 
 --Function to initialize the lookup tables based on the game's tables--
 local function add_game_lookup_tables()
-    game_lookup_tables = mod:io_dofile([[Power_DI\scripts\mods\Power_DI\templates\game_lookup_table_templates]])
+    local ok, result = pcall(function()
+        return mod:io_dofile([[Power_DI\scripts\mods\Power_DI\templates\game_lookup_table_templates]])
+    end)
+
+    if not ok or type(result) ~= "table" then
+        error("Failed to load Power_DI templates/game_lookup_table_templates.lua: " .. tostring(result))
+    end
+
+    game_lookup_tables = result
     utilities.clean_table_for_saving(game_lookup_tables)
 
-    if master_data_items_cache:get_cached() then
+    if master_data_items_cache and master_data_items_cache:get_cached() then
         lookup_manager.add_master_item_lookup_table()
     end
 end
@@ -55,7 +63,13 @@ end
 
 --Function to add the MasterItems to the lookup table, only triggered after login--
 lookup_manager.add_master_item_lookup_table = function()
-    game_lookup_tables["MasterItems"] = table.clone(master_data_items_cache:get_cached())
+    local cached_master_items = master_data_items_cache and master_data_items_cache:get_cached()
+    if not cached_master_items then
+        error("MasterItems cache is not available")
+    end
+
+    game_lookup_tables["MasterItems"] = utilities.safe_clone_table(cached_master_items)
+    utilities.clean_table_for_saving(game_lookup_tables["MasterItems"])
     PDI.save_manager.save("game_lookup_tables", game_lookup_tables)
 end
 

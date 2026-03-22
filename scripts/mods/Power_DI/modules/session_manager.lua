@@ -136,7 +136,8 @@ session_manager.resume_or_create_session = function()
         local local_player_unit_uuid = local_player_unit and PDI.utilities.get_unit_uuid(local_player_unit)
         local player_profiles_datasource = PDI.data.session_data.datasources.PlayerProfiles
         local unit_spawner_manager_datasource = PDI.data.session_data.datasources.UnitSpawnerManager
-        local local_player_profile = PDI.utilities.copy(local_player._profile)
+        local local_player_profile = PDI.utilities.copy(local_player:profile())
+        PDI.utilities.clean_table_for_saving(local_player_profile)
         player_profiles_datasource[local_player_unit_uuid] = local_player_profile
 
         local temp_table = {}
@@ -156,4 +157,3 @@ session_manager.get_loaded_session_id = function()
 end
 
 return session_manager
-

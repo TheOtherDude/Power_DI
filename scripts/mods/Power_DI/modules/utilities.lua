@@ -164,6 +164,75 @@ utilities.vector_to_string = function(input_vector)
     return Vector3.to_array(input_vector)
 end
 
+local function hidden_data_wrapper(input_table)
+    local data = rawget(input_table, "__data")
+    if type(data) ~= "table" then
+        return false
+    end
+
+    for key, _ in next, input_table do
+        if key ~= "__data" then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function get_clone_source(input_table)
+    if hidden_data_wrapper(input_table) then
+        return rawget(input_table, "__data")
+    end
+
+    local mt = getmetatable(input_table)
+    if mt and next(input_table) == nil and type(mt.__index) == "table" then
+        return mt.__index
+    end
+
+    return input_table
+end
+
+local function safe_clone_table(input_table, lookup)
+    local source_table = get_clone_source(input_table)
+    local existing = lookup[input_table] or lookup[source_table]
+    if existing then
+        return existing
+    end
+
+    local clone = {}
+    lookup[input_table] = clone
+    lookup[source_table] = clone
+
+    for key, value in next, source_table do
+        local clone_key = key
+        if key == input_table or key == source_table then
+            clone_key = clone
+        elseif type(key) == "table" then
+            clone_key = safe_clone_table(key, lookup)
+        end
+
+        local clone_value = value
+        if value == input_table or value == source_table then
+            clone_value = clone
+        elseif type(value) == "table" then
+            clone_value = safe_clone_table(value, lookup)
+        end
+
+        clone[clone_key] = clone_value
+    end
+
+    return clone
+end
+
+-- Clone tables without relying on Darktide's native table.clone behavior.
+utilities.safe_clone_table = function(input_table)
+    if type(input_table) ~= "table" then
+        return input_table
+    end
+
+    return safe_clone_table(input_table, {})
+end
+
 --Function to create a proxy table--
 utilities.create_proxy_table = function(input_table)
     local proxy = {}
@@ -171,7 +240,7 @@ utilities.create_proxy_table = function(input_table)
       __index = function (t,k)
         local item = rawget(input_table,k)
         if item and type(item) == "table" then
-            return table.clone(item)
+            return utilities.safe_clone_table(item)
         elseif item then
             return(item)
         else
