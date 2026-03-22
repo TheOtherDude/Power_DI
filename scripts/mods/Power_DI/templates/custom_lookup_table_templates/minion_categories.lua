@@ -369,5 +369,25 @@ local minion_categories = {
 		display_name = "loc_breed_display_name_renegade_plasma_gunner",
 		armor_type = "loc_weapon_stats_display_armored",
 	},
+	-- Armoured Pox Hound
+	-- scripts/settings/breed/breeds/chaos/chaos_armored_hound_breed.lua
+	chaos_armored_hound = {
+		attack_type = "loc_contract_task_weapon_type_melee",
+		faction = "mloc_chaos_faction",
+		type = "mloc_specialist",
+		class = "mloc_hound",
+		display_name = "loc_breed_display_name_chaos_armored_hound",
+		armor_type = "loc_weapon_stats_display_armored",
+	},
+	-- Ogryn Pack Master
+	-- scripts/settings/breed/breeds/chaos/chaos_ogryn_houndmaster_breed.lua
+	chaos_ogryn_houndmaster = {
+		attack_type = "loc_contract_task_weapon_type_melee",
+		faction = "mloc_chaos_faction",
+		type = "mloc_monstrosity",
+		class = "loc_breed_display_name_chaos_ogryn_houndmaster",
+		display_name = "loc_breed_display_name_chaos_ogryn_houndmaster",
+		armor_type = "loc_glossary_armour_type_resistant",
+	},
 }
  return minion_categories
