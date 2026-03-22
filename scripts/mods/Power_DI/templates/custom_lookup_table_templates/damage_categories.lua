@@ -55,7 +55,9 @@ local damage_profile_templates = {
         require("scripts/settings/equipment/weapon_templates/needlepistols/settings_templates/needlepistol_damage_profile_templates"),
     },
   ["mloc_3_blitz_damage"] = {
-        require("scripts/settings/damage/damage_profiles/grenade_damage_profile_templates"),        
+        require("scripts/settings/damage/damage_profiles/grenade_damage_profile_templates"),
+        require("scripts/settings/damage/damage_profiles/artillery_damage_profile_templates"),
+        require("scripts/settings/damage/damage_profiles/trap_damage_profile_templates"),
         require("scripts/settings/damage/damage_profiles/smiter_damage_profile_templates"),
         require("scripts/settings/damage/damage_profiles/archetypes/psyker_damage_profile_templates"),
         require("scripts/settings/damage/damage_profiles/archetypes/zealot_damage_profile_templates"),
@@ -132,6 +134,8 @@ damage_categories["broker_punk_rage_shout"] = "mloc_4_combat_ability_damage"
 damage_categories["broker_stimm_field"] = "mloc_4_combat_ability_damage"
 damage_categories["broker_stimm_field_close"] = "mloc_4_combat_ability_damage"
 damage_categories["broker_vultures_mark_aoe_stagger"] = "mloc_3_blitz_damage"
+damage_categories["broker_tox_grenade"] = "mloc_3_blitz_damage"
+damage_categories["broker_passive_knockback_on_taking_melee_damage"] = "mloc_4_combat_ability_damage"
 
 damage_profile_templates = nil
 
